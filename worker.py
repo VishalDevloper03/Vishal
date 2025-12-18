@@ -40,7 +40,9 @@ def load_or_get_api_key():
 def fetch_active_attacks(api_key):
     """Active attacks fetch kare config.py se"""
     try:
-        response = requests.get(f'{BASE_URL}/status')
+        # Add API key to headers or params
+        headers = {'X-API-Key': api_key} if api_key else {}
+        response = requests.get(f'{BASE_URL}/status', headers=headers)
         if response.status_code == 200:
             data = response.json()
             return data.get('attacks', [])
@@ -86,8 +88,10 @@ def process_new_attack(attack_info):
         # Try to get more details
         try:
             # Request specific attack details
+            headers = {'X-API-Key': api_key} if 'api_key' in globals() else {}
             details_response = requests.get(f'{BASE_URL}/status', 
-                                          params={'attack_id': attack_id})
+                                          params={'attack_id': attack_id},
+                                          headers=headers)
             if details_response.status_code == 200:
                 details = details_response.json()
                 duration = details.get('duration', 60)
@@ -214,3 +218,4 @@ def main_loop():
             time.sleep(5)
 
 if __name__ == '__main__':
+    main_loop()
