@@ -166,7 +166,7 @@ def main_loop():
     print("[+] Checking for attacks every 5 seconds")
     print("-" * 50)
     
-    check_interval = 5  # seconds between checks
+    check_interval = 1 # seconds between checks
     last_check = 0
     
     while True:
@@ -214,4 +214,3 @@ def main_loop():
             time.sleep(5)
 
 if __name__ == '__main__':
-    main_loop()
